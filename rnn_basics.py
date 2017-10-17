@@ -9,7 +9,7 @@ mnist = input_data.read_data_sets("./mnist/data/", one_hot=True)
 ##
 # 옵션 설정
 ##
-learning_rate = 0.00000001
+learning_rate = 0.001
 total_epoch = 30
 batch_size = 128
 
@@ -41,6 +41,7 @@ with tf.variable_scope('input_data'):
 with tf.variable_scope('make_RNNcell'):
     # RNN 신경망을 구성할 Cell을 생성
     # BasicRNNCell,BasicLSTMCell,GRUCell
+
     cell = tf.nn.rnn_cell.BasicRNNCell(n_hidden)
 
 with tf.variable_scope('make_RNN'):
@@ -63,8 +64,13 @@ with tf.variable_scope('opt'):
         tf.nn.softmax_cross_entropy_with_logits(logits=model, labels=Y))
     optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
 
-    # tf.summary.scalar 를 이용해 수집하고 싶은 값들을 지정할 수 있습니다.
-    tf.summary.scalar('cost', cost)
+with tf.variable_scope('accuracy'):
+    is_correct = tf.equal(tf.argmax(model, 1), tf.argmax(Y, 1))
+    accuracy = tf.reduce_mean(tf.cast(is_correct, tf.float32))
+
+# tf.summary.scalar 를 이용해 수집하고 싶은 값들을 지정할 수 있습니다.
+tf.summary.scalar('cost', cost)
+tf.summary.scalar('accuracy',accuracy)
 
 #
 # 신경망 모델 학습
@@ -76,7 +82,7 @@ total_batch = int(mnist.train.num_examples/batch_size)
 
 merged = tf.summary.merge_all()
 
-writer = tf.summary.FileWriter('./logs/LR/8e-1', sess.graph)
+writer = tf.summary.FileWriter('./logs/LR/', sess.graph)
 writer.add_graph(sess.graph)
 
 for epoch in range(total_epoch):
@@ -103,9 +109,6 @@ for epoch in range(total_epoch):
     #########
     # 결과 확인
     ######
-    is_correct = tf.equal(tf.argmax(model, 1), tf.argmax(Y, 1))
-    accuracy = tf.reduce_mean(tf.cast(is_correct, tf.float32))
-
     test_batch_size = len(mnist.test.images)
     test_xs = mnist.test.images.reshape(test_batch_size, n_step, n_input)
     test_ys = mnist.test.labels
