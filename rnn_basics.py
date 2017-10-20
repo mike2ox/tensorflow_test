@@ -12,6 +12,7 @@ mnist = input_data.read_data_sets("./mnist/data/", one_hot=True)
 learning_rate = 0.001
 total_epoch = 30
 batch_size = 128
+detail_dir_route = "/GRU/LR/3e-1"
 
 # RNN 은 순서가 있는 자료를 다루므로,
 # 한 번에 입력받는 갯수와, 총 몇 단계로 이루어져있는 데이터를 받을지를 설정해야합니다.
@@ -42,7 +43,7 @@ with tf.variable_scope('make_RNNcell'):
     # RNN 신경망을 구성할 Cell을 생성
     # BasicRNNCell,BasicLSTMCell,GRUCell
 
-    cell = tf.nn.rnn_cell.BasicRNNCell(n_hidden)
+    cell = tf.nn.rnn_cell.GRUCell(n_hidden)
 
 with tf.variable_scope('make_RNN'):
     # RNN 신경망을 생성합니다
@@ -53,6 +54,7 @@ with tf.variable_scope('make_RNN'):
 with tf.variable_scope('transpose'):
     # 결과를 Y의 형식으로 바꿔주기 위해 outputs의 형태를 변경한다
     outputs = tf.transpose(outputs, [1, 0, 2])
+
     # 왜 -1??
     outputs = outputs[-1]
     model = tf.matmul(outputs, W) + b
@@ -82,7 +84,7 @@ total_batch = int(mnist.train.num_examples/batch_size)
 
 merged = tf.summary.merge_all()
 
-writer = tf.summary.FileWriter('./logs/LR/', sess.graph)
+writer = tf.summary.FileWriter('./logs' + detail_dir_route, sess.graph)
 writer.add_graph(sess.graph)
 
 for epoch in range(total_epoch):
